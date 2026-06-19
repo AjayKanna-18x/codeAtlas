@@ -11,11 +11,11 @@ import { Toaster } from "react-hot-toast";
 function App() {
   return (
     <Router>
-      <div className="flex flex-col min-h-screen bg-primary">
+      <div className="app-container">
         <Navbar />
-        <div className="flex flex-1">
+        <div className="app-body">
           <Sidebar />
-          <main className="flex-1 p-6">
+          <main className="main-content">
             <Routes>
               <Route path="/" element={<Dashboard />} />
               <Route path="/graph" element={<GraphPage />} />

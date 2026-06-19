@@ -1,8 +1,8 @@
 const GraphPage = () => {
   return (
     <div>
-      <h1 className="text-2xl font-bold text-white">Graph Viewer</h1>
-      <p className="text-slate-400 mt-2">Dependency graph will be displayed here.</p>
+      <h1 className="page-title">Graph Viewer</h1>
+      <p className="page-subtitle">Dependency graph will appear here.</p>
     </div>
   );
 };
