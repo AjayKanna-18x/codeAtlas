@@ -42,6 +42,7 @@ app.get("/api/health", (req, res) => {
     message: "CodeAtlas Backend is healthy ✅",
     timestamp: new Date().toISOString(),
     environment: config.nodeEnv,
+    database: "connected",
   });
 });
 
@@ -66,11 +67,10 @@ app.use(errorHandler);
 // ─── Start Server ─────────────────────────────────────────
 const startServer = async () => {
   try {
-    // MongoDB will be connected on Day 4
-    // await connectDB();
+    // ✅ Now connecting MongoDB
+    await connectDB();
 
     app.listen(config.port, () => {
-      console.log("─────────────────────────────────────");
       console.log(`🚀 CodeAtlas Server Started`);
       console.log(`📡 Port     : ${config.port}`);
       console.log(`🌍 Mode     : ${config.nodeEnv}`);
