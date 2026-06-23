@@ -23,7 +23,7 @@ const connectDB = async () => {
     mongoose.connection.on("reconnected", () => {
       console.log("🔄 MongoDB Reconnected");
     });
-
+//use mangoos to connect
   } catch (error) {
     console.error(`❌ MongoDB Connection Failed: ${error.message}`);
     process.exit(1);
