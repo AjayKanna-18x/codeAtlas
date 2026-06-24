@@ -1,12 +1,26 @@
 import {
   validateRepository,
-  extractRepoInfo,
   cloneRepository,
 } from "../services/repositoryService.js";
+import {
+  scanRepository,
+  analyzeAllFiles,
+  getRepositoryHierarchy,
+  generateRepoStats,
+} from "../services/fileScannerService.js";
+import {
+  buildDependencyMap,
+} from "../services/dependencyAnalyzerService.js";
+import {
+  buildGraph,
+} from "../services/graphBuilderService.js";
 import Repository from "../models/Repository.js";
+import FileMetadata from "../models/FileMetadata.js";
+import DependencyGraph from "../models/DependencyGraph.js";
+import AnalysisResult from "../models/AnalysisResult.js";
 
 // ─── Validate Repository ──────────────────────────────────
-// @route  POST /api/repositories/validate
+// @route POST /api/repositories/validate
 export const validateRepo = async (req, res) => {
   try {
     const { repoUrl } = req.body;
@@ -35,7 +49,6 @@ export const validateRepo = async (req, res) => {
       step: result.step,
       data: result.data,
     });
-
   } catch (error) {
     return res.status(500).json({
       success: false,
@@ -45,7 +58,7 @@ export const validateRepo = async (req, res) => {
 };
 
 // ─── Get All Repositories ─────────────────────────────────
-// @route  GET /api/repositories
+// @route GET /api/repositories
 export const getAllRepositories = async (req, res) => {
   try {
     const repositories = await Repository.find().sort({ createdAt: -1 });
@@ -63,8 +76,8 @@ export const getAllRepositories = async (req, res) => {
   }
 };
 
-// ─── Get Single Repository ────────────────────────────────
-// @route  GET /api/repositories/:id
+// ─── Get Repository By ID ─────────────────────────────────
+// @route GET /api/repositories/:id
 export const getRepositoryById = async (req, res) => {
   try {
     const repo = await Repository.findById(req.params.id);
@@ -88,8 +101,39 @@ export const getRepositoryById = async (req, res) => {
   }
 };
 
+// ─── Delete Repository ────────────────────────────────────
+// @route DELETE /api/repositories/:id
+export const deleteRepository = async (req, res) => {
+  try {
+    const repo = await Repository.findById(req.params.id);
+
+    if (!repo) {
+      return res.status(404).json({
+        success: false,
+        message: "Repository not found.",
+      });
+    }
+
+    // Delete associated data
+    await FileMetadata.deleteMany({ repositoryId: repo._id });
+    await DependencyGraph.deleteOne({ repositoryId: repo._id });
+    await AnalysisResult.deleteMany({ repositoryId: repo._id });
+    await Repository.findByIdAndDelete(req.params.id);
+
+    return res.status(200).json({
+      success: true,
+      message: "Repository and all associated data deleted.",
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
 // ─── Import Repository ────────────────────────────────────
-// @route  POST /api/repositories/import
+// @route POST /api/repositories/import
 export const importRepository = async (req, res) => {
   try {
     const { repoUrl } = req.body;
@@ -101,8 +145,8 @@ export const importRepository = async (req, res) => {
       });
     }
 
-    // Step 1 — Validate repository
-    console.log("🔍 Step 1: Validating repository...");
+    // Step 1 — Validate
+    console.log("🔍 Step 1: Validating...");
     const validation = await validateRepository(repoUrl);
 
     if (!validation.valid) {
@@ -115,8 +159,8 @@ export const importRepository = async (req, res) => {
 
     const repoData = validation.data;
 
-    // Step 2 — Check if already imported
-    console.log("🔍 Step 2: Checking for duplicates...");
+    // Step 2 — Check duplicate
+    console.log("🔍 Step 2: Checking duplicates...");
     const existingRepo = await Repository.findOne({
       githubUrl: repoUrl.trim(),
     });
@@ -130,8 +174,8 @@ export const importRepository = async (req, res) => {
       });
     }
 
-    // Step 3 — Clone repository
-    console.log("📥 Step 3: Cloning repository...");
+    // Step 3 — Clone
+    console.log("📥 Step 3: Cloning...");
     const cloneResult = await cloneRepository(
       repoData.cloneUrl,
       repoData.name
@@ -145,7 +189,7 @@ export const importRepository = async (req, res) => {
     }
 
     // Step 4 — Save to MongoDB
-    console.log("💾 Step 4: Saving to database...");
+    console.log("💾 Step 4: Saving metadata...");
     const repository = new Repository({
       name: repoData.name,
       owner: repoData.owner,
@@ -164,11 +208,10 @@ export const importRepository = async (req, res) => {
     });
 
     await repository.save();
-    console.log(`✅ Repository saved: ${repository._id}`);
 
     return res.status(201).json({
       success: true,
-      message: "Repository imported and cloned successfully.",
+      message: "Repository imported successfully.",
       data: {
         repositoryId: repository._id,
         name: repository.name,
@@ -178,12 +221,150 @@ export const importRepository = async (req, res) => {
         githubData: repoData,
       },
     });
-
   } catch (error) {
-    console.error(`❌ Import error: ${error.message}`);
     return res.status(500).json({
       success: false,
       message: `Import failed: ${error.message}`,
+    });
+  }
+};
+
+// ─── Analyze Repository ───────────────────────────────────
+// @route POST /api/repositories/:id/analyze
+export const analyzeRepository = async (req, res) => {
+  const startTime = Date.now();
+
+  try {
+    const repo = await Repository.findById(req.params.id);
+
+    if (!repo) {
+      return res.status(404).json({
+        success: false,
+        message: "Repository not found.",
+      });
+    }
+
+    if (!repo.localPath) {
+      return res.status(400).json({
+        success: false,
+        message: "Repository not cloned yet.",
+      });
+    }
+
+    // Update status to analyzing
+    repo.status = "analyzing";
+    await repo.save();
+
+    // Step 1 — Scan files
+    console.log("📁 Step 1: Scanning files...");
+    const files = scanRepository(repo.localPath);
+
+    // Step 2 — Analyze files (AST)
+    console.log("🔍 Step 2: Analyzing files with AST...");
+    const analyzedFiles = analyzeAllFiles(files, repo.localPath);
+
+    // Step 3 — Build dependency map
+    console.log("🔗 Step 3: Building dependency map...");
+    const dependencyMap = buildDependencyMap(analyzedFiles, repo.localPath);
+
+    // Step 4 — Build graph
+    console.log("📊 Step 4: Building graph...");
+    const graph = buildGraph(analyzedFiles, dependencyMap);
+
+    // Step 5 — Save file metadata to MongoDB
+    console.log("💾 Step 5: Saving file metadata...");
+    await FileMetadata.deleteMany({ repositoryId: repo._id });
+
+    const fileMetaDocs = analyzedFiles.map((file) => ({
+      repositoryId: repo._id,
+      fileName: file.fileName,
+      filePath: file.filePath,
+      relativePath: file.relativePath,
+      extension: file.extension,
+      stats: {
+        linesOfCode: file.linesOfCode || 0,
+        functionCount: file.functionCount || 0,
+        importCount: file.importCount || 0,
+        exportCount: file.exportCount || 0,
+        fileSize: file.fileSize || 0,
+      },
+      imports: file.imports || [],
+      exports: (file.exports || []).map((e) =>
+        typeof e === "string" ? e : e.name || ""
+      ),
+      isDeadCode: false,
+    }));
+
+    await FileMetadata.insertMany(fileMetaDocs);
+
+    // Step 6 — Save dependency graph
+    console.log("💾 Step 6: Saving dependency graph...");
+    await DependencyGraph.deleteOne({ repositoryId: repo._id });
+
+    const depGraph = new DependencyGraph({
+      repositoryId: repo._id,
+      nodes: graph.nodes,
+      edges: graph.edges,
+      stats: graph.stats,
+    });
+
+    await depGraph.save();
+
+    // Step 7 — Generate repo stats
+    const repoStats = generateRepoStats(analyzedFiles);
+
+    // Step 8 — Update repository
+    repo.status = "completed";
+    repo.stats = {
+      totalFiles: repoStats.totalFiles,
+      jsFiles: repoStats.jsFiles,
+      totalDependencies: graph.edges.length,
+      deadCodeFiles: 0,
+      totalLines: repoStats.totalLines,
+    };
+    await repo.save();
+
+    // Step 9 — Save analysis result
+    const analysisResult = new AnalysisResult({
+      repositoryId: repo._id,
+      status: "completed",
+      analysisTime: Date.now() - startTime,
+      deadCode: {
+        unusedFiles: [],
+        isolatedNodes: [],
+        totalDeadFiles: 0,
+      },
+      architectureSummary: {
+        pattern: null,
+        description: null,
+        layers: [],
+        suggestions: [],
+      },
+    });
+
+    await analysisResult.save();
+
+    console.log(`✅ Analysis complete in ${Date.now() - startTime}ms`);
+
+    return res.status(200).json({
+      success: true,
+      message: "Repository analyzed successfully.",
+      data: {
+        repositoryId: repo._id,
+        stats: repo.stats,
+        graphStats: graph.stats,
+        analysisTime: Date.now() - startTime,
+      },
+    });
+  } catch (error) {
+    // Update repo status to failed
+    await Repository.findByIdAndUpdate(req.params.id, {
+      status: "failed",
+    });
+
+    return res.status(500).json({
+      success: false,
+      message: `Analysis failed: ${error.message}`,
     });
   }
 };
