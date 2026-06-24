@@ -24,49 +24,6 @@ export const parseFileToAST = (code, filePath = "") => {
   }
 };
 
-// ─── Extract imports from AST ─────────────────────────────
-export const extractImports = (ast) => {
-  const imports = [];
-
-  if (!ast || !ast.program || !ast.program.body) return imports;
-
-  for (const node of ast.program.body) {
-    // ES6 import statements
-    if (node.type === "ImportDeclaration") {
-      const source = node.source.value;
-      const specifiers = node.specifiers.map((s) => {
-        if (s.type === "ImportDefaultSpecifier") {
-          return { type: "default", name: s.local.name };
-        }
-        if (s.type === "ImportNamespaceSpecifier") {
-          return { type: "namespace", name: s.local.name };
-        }
-        if (s.type === "ImportSpecifier") {
-          return {
-            type: "named",
-            name: s.imported.name,
-            alias: s.local.name,
-          };
-        }
-        return { type: "unknown", name: s.local?.name };
-      });
-
-      imports.push({ source, specifiers, type: "static" });
-    }
-
-    // CommonJS require() calls
-    if (
-      node.type === "VariableDeclaration" ||
-      node.type === "ExpressionStatement"
-    ) {
-      const requireImports = extractRequireCalls(node);
-      imports.push(...requireImports);
-    }
-  }
-
-  return imports;
-};
-
 // ─── Extract require() calls ──────────────────────────────
 const extractRequireCalls = (node) => {
   const imports = [];
@@ -103,7 +60,6 @@ const extractRequireCalls = (node) => {
   return imports;
 };
 
-// ─── Extract exports from AST ─────────────────────────────
 // ─── Extract imports from AST ─────────────────────────────
 export const extractImports = (ast) => {
   const imports = [];
@@ -115,7 +71,7 @@ export const extractImports = (ast) => {
     if (node.type === "ImportDeclaration") {
       const source = node.source.value;
 
-      // ✅ Specifiers as simple strings now
+      // ✅ Specifiers as simple strings
       const specifiers = node.specifiers.map((s) => {
         if (s.type === "ImportDefaultSpecifier") return s.local.name;
         if (s.type === "ImportNamespaceSpecifier") return `* as ${s.local.name}`;
@@ -138,6 +94,66 @@ export const extractImports = (ast) => {
 
   return imports;
 };
+
+// ─── Extract exports from AST ─────────────────────────────
+export const extractExports = (ast) => {
+  const exports = [];
+
+  if (!ast || !ast.program || !ast.program.body) return exports;
+
+  for (const node of ast.program.body) {
+    // export default
+    if (node.type === "ExportDefaultDeclaration") {
+      exports.push({
+        type: "default",
+        name: node.declaration?.id?.name || "default",
+      });
+    }
+
+    // export const / export function
+    if (node.type === "ExportNamedDeclaration") {
+      if (node.declaration) {
+        if (node.declaration.type === "VariableDeclaration") {
+          node.declaration.declarations.forEach((d) => {
+            exports.push({ type: "named", name: d.id?.name || "" });
+          });
+        }
+        if (
+          node.declaration.type === "FunctionDeclaration" ||
+          node.declaration.type === "ClassDeclaration"
+        ) {
+          exports.push({
+            type: "named",
+            name: node.declaration.id?.name || "",
+          });
+        }
+      }
+
+      // export { name1, name2 }
+      if (node.specifiers) {
+        node.specifiers.forEach((s) => {
+          exports.push({
+            type: "named",
+            name: s.exported?.name || "",
+          });
+        });
+      }
+    }
+
+    // module.exports = {}
+    if (
+      node.type === "ExpressionStatement" &&
+      node.expression?.type === "AssignmentExpression" &&
+      node.expression?.left?.object?.name === "module" &&
+      node.expression?.left?.property?.name === "exports"
+    ) {
+      exports.push({ type: "commonjs", name: "module.exports" });
+    }
+  }
+
+  return exports;
+};
+
 // ─── Count functions in AST ───────────────────────────────
 export const countFunctions = (ast) => {
   let count = 0;
@@ -173,8 +189,12 @@ export const countFunctions = (ast) => {
 };
 
 // ─── Resolve import path ──────────────────────────────────
-export const resolveImportPath = (importSource, currentFilePath, projectRoot) => {
-  // Skip external packages (no ./ or ../)
+export const resolveImportPath = (
+  importSource,
+  currentFilePath,
+  projectRoot
+) => {
+  // Skip external packages
   if (!importSource.startsWith(".")) {
     return { type: "external", resolved: importSource };
   }
