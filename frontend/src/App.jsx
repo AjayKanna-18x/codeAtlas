@@ -6,6 +6,7 @@ import GraphPage from "./pages/GraphPage";
 import FilePage from "./pages/FilePage";
 import AIPage from "./pages/AIPage";
 import HistoryPage from "./pages/HistoryPage";
+import ImportPage from "./pages/ImportPage";
 import { Toaster } from "react-hot-toast";
 
 function App() {
@@ -18,6 +19,7 @@ function App() {
           <main className="main-content">
             <Routes>
               <Route path="/" element={<Dashboard />} />
+              <Route path="/import" element={<ImportPage />} />
               <Route path="/graph" element={<GraphPage />} />
               <Route path="/files" element={<FilePage />} />
               <Route path="/ai" element={<AIPage />} />
@@ -30,6 +32,5 @@ function App() {
     </Router>
   );
 }
-// app.jsx is the main entry point of the React application. It sets up the routing for different pages using React Router. The Navbar and Sidebar components are rendered on every page, while the main content area changes based on the current route. The Toaster component is used for displaying notifications.
 
 export default App;
