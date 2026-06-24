@@ -229,142 +229,49 @@ export const importRepository = async (req, res) => {
   }
 };
 
-// ─── Analyze Repository ───────────────────────────────────
-// @route POST /api/repositories/:id/analyze
-export const analyzeRepository = async (req, res) => {
-  const startTime = Date.now();
+// Step 5 — Save file metadata to MongoDB
+console.log("💾 Step 5: Saving file metadata...");
+await FileMetadata.deleteMany({ repositoryId: repo._id });
 
-  try {
-    const repo = await Repository.findById(req.params.id);
-
-    if (!repo) {
-      return res.status(404).json({
-        success: false,
-        message: "Repository not found.",
-      });
+const fileMetaDocs = analyzedFiles.map((file) => {
+  // ✅ Safely format imports
+  const safeImports = (file.imports || []).map((imp) => {
+    if (typeof imp === "string") {
+      return { source: imp, specifiers: [], type: "static" };
     }
-
-    if (!repo.localPath) {
-      return res.status(400).json({
-        success: false,
-        message: "Repository not cloned yet.",
-      });
-    }
-
-    // Update status to analyzing
-    repo.status = "analyzing";
-    await repo.save();
-
-    // Step 1 — Scan files
-    console.log("📁 Step 1: Scanning files...");
-    const files = scanRepository(repo.localPath);
-
-    // Step 2 — Analyze files (AST)
-    console.log("🔍 Step 2: Analyzing files with AST...");
-    const analyzedFiles = analyzeAllFiles(files, repo.localPath);
-
-    // Step 3 — Build dependency map
-    console.log("🔗 Step 3: Building dependency map...");
-    const dependencyMap = buildDependencyMap(analyzedFiles, repo.localPath);
-
-    // Step 4 — Build graph
-    console.log("📊 Step 4: Building graph...");
-    const graph = buildGraph(analyzedFiles, dependencyMap);
-
-    // Step 5 — Save file metadata to MongoDB
-    console.log("💾 Step 5: Saving file metadata...");
-    await FileMetadata.deleteMany({ repositoryId: repo._id });
-
-    const fileMetaDocs = analyzedFiles.map((file) => ({
-      repositoryId: repo._id,
-      fileName: file.fileName,
-      filePath: file.filePath,
-      relativePath: file.relativePath,
-      extension: file.extension,
-      stats: {
-        linesOfCode: file.linesOfCode || 0,
-        functionCount: file.functionCount || 0,
-        importCount: file.importCount || 0,
-        exportCount: file.exportCount || 0,
-        fileSize: file.fileSize || 0,
-      },
-      imports: file.imports || [],
-      exports: (file.exports || []).map((e) =>
-        typeof e === "string" ? e : e.name || ""
-      ),
-      isDeadCode: false,
-    }));
-
-    await FileMetadata.insertMany(fileMetaDocs);
-
-    // Step 6 — Save dependency graph
-    console.log("💾 Step 6: Saving dependency graph...");
-    await DependencyGraph.deleteOne({ repositoryId: repo._id });
-
-    const depGraph = new DependencyGraph({
-      repositoryId: repo._id,
-      nodes: graph.nodes,
-      edges: graph.edges,
-      stats: graph.stats,
-    });
-
-    await depGraph.save();
-
-    // Step 7 — Generate repo stats
-    const repoStats = generateRepoStats(analyzedFiles);
-
-    // Step 8 — Update repository
-    repo.status = "completed";
-    repo.stats = {
-      totalFiles: repoStats.totalFiles,
-      jsFiles: repoStats.jsFiles,
-      totalDependencies: graph.edges.length,
-      deadCodeFiles: 0,
-      totalLines: repoStats.totalLines,
+    return {
+      source: imp.source || "",
+      specifiers: Array.isArray(imp.specifiers) ? imp.specifiers : [],
+      type: imp.type || "static",
     };
-    await repo.save();
+  });
 
-    // Step 9 — Save analysis result
-    const analysisResult = new AnalysisResult({
-      repositoryId: repo._id,
-      status: "completed",
-      analysisTime: Date.now() - startTime,
-      deadCode: {
-        unusedFiles: [],
-        isolatedNodes: [],
-        totalDeadFiles: 0,
-      },
-      architectureSummary: {
-        pattern: null,
-        description: null,
-        layers: [],
-        suggestions: [],
-      },
-    });
+  // ✅ Safely format exports
+  const safeExports = (file.exports || []).map((exp) => {
+    if (typeof exp === "string") return { name: exp, type: "named" };
+    return {
+      name: exp.name || "",
+      type: exp.type || "named",
+    };
+  });
 
-    await analysisResult.save();
+  return {
+    repositoryId: repo._id,
+    fileName: file.fileName,
+    filePath: file.filePath,
+    relativePath: file.relativePath,
+    extension: file.extension || ".js",
+    stats: {
+      linesOfCode: file.linesOfCode || 0,
+      functionCount: file.functionCount || 0,
+      importCount: file.importCount || 0,
+      exportCount: file.exportCount || 0,
+      fileSize: file.fileSize || 0,
+    },
+    imports: safeImports,
+    exports: safeExports,
+    isDeadCode: false,
+  };
+});
 
-    console.log(`✅ Analysis complete in ${Date.now() - startTime}ms`);
-
-    return res.status(200).json({
-      success: true,
-      message: "Repository analyzed successfully.",
-      data: {
-        repositoryId: repo._id,
-        stats: repo.stats,
-        graphStats: graph.stats,
-        analysisTime: Date.now() - startTime,
-      },
-    });
-  } catch (error) {
-    // Update repo status to failed
-    await Repository.findByIdAndUpdate(req.params.id, {
-      status: "failed",
-    });
-
-    return res.status(500).json({
-      success: false,
-      message: `Analysis failed: ${error.message}`,
-    });
-  }
-};
+await FileMetadata.insertMany(fileMetaDocs);
