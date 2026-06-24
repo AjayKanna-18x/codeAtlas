@@ -1,8 +1,16 @@
 import { NavLink } from "react-router-dom";
-import { FiHome, FiGitBranch, FiFile, FiCpu, FiClock } from "react-icons/fi";
+import {
+  FiHome,
+  FiGitBranch,
+  FiFile,
+  FiCpu,
+  FiClock,
+  FiUpload,
+} from "react-icons/fi";
 
 const navItems = [
   { path: "/", icon: <FiHome />, label: "Dashboard" },
+  { path: "/import", icon: <FiUpload />, label: "Import Repo" },
   { path: "/graph", icon: <FiGitBranch />, label: "Graph Viewer" },
   { path: "/files", icon: <FiFile />, label: "File Inspector" },
   { path: "/ai", icon: <FiCpu />, label: "AI Assistant" },
