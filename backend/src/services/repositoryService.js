@@ -1,4 +1,9 @@
 import axios from "axios";
+import simpleGit from "simple-git";
+import fs from "fs";
+import path from "path";
+import { config } from "../config/env.js";
+import { v4 as uuidv4 } from "uuid";
 
 // ─── Validate GitHub URL Format ───────────────────────────
 export const validateGithubUrl = (url) => {
@@ -11,7 +16,6 @@ export const validateGithubUrl = (url) => {
 export const extractRepoInfo = (url) => {
   const cleaned = url.trim().replace(/\/$/, "");
   const parts = cleaned.replace("https://github.com/", "").split("/");
-
   return {
     owner: parts[0] || null,
     name: parts[1] || null,
@@ -19,23 +23,17 @@ export const extractRepoInfo = (url) => {
   };
 };
 
-// ─── Check if GitHub Repo Exists ─────────────────────────
+// ─── Check GitHub Repo Exists ─────────────────────────────
 export const checkGithubRepoExists = async (owner, name) => {
   try {
     const response = await axios.get(
       `https://api.github.com/repos/${owner}/${name}`,
       {
-        headers: {
-          Accept: "application/vnd.github.v3+json",
-          // Add GitHub token here if needed for rate limits
-          // Authorization: `token ${process.env.GITHUB_TOKEN}`,
-        },
+        headers: { Accept: "application/vnd.github.v3+json" },
         timeout: 10000,
       }
     );
-
     const data = response.data;
-
     return {
       exists: true,
       isPrivate: data.private,
@@ -61,31 +59,28 @@ export const checkGithubRepoExists = async (owner, name) => {
         exists: false,
         isPrivate: false,
         repoData: null,
-        error: "Repository not found. Check the URL and try again.",
+        error: "Repository not found.",
       };
     }
-
     if (error.response?.status === 403) {
       return {
         exists: false,
         isPrivate: true,
         repoData: null,
-        error: "Repository is private or GitHub API rate limit exceeded.",
+        error: "Private repository or rate limit exceeded.",
       };
     }
-
     return {
       exists: false,
       isPrivate: false,
       repoData: null,
-      error: `GitHub API Error: ${error.message}`,
+      error: error.message,
     };
   }
 };
 
 // ─── Full Validation Pipeline ─────────────────────────────
 export const validateRepository = async (url) => {
-  // Step 1 — Validate URL format
   if (!validateGithubUrl(url)) {
     return {
       valid: false,
@@ -95,26 +90,24 @@ export const validateRepository = async (url) => {
     };
   }
 
-  // Step 2 — Extract repo info
   const { owner, name } = extractRepoInfo(url);
 
   if (!owner || !name) {
     return {
       valid: false,
       step: "url_parse",
-      message: "Could not extract repository owner or name.",
+      message: "Could not extract owner or name.",
       data: null,
     };
   }
 
-  // Step 3 — Check if repo exists on GitHub
   const repoCheck = await checkGithubRepoExists(owner, name);
 
   if (!repoCheck.exists) {
     return {
       valid: false,
       step: "repo_exists",
-      message: repoCheck.error || "Repository does not exist.",
+      message: repoCheck.error,
       data: null,
     };
   }
@@ -123,16 +116,62 @@ export const validateRepository = async (url) => {
     return {
       valid: false,
       step: "repo_access",
-      message: "Private repositories are not supported yet.",
+      message: "Private repositories not supported.",
       data: null,
     };
   }
 
-  // Step 4 — All checks passed
   return {
     valid: true,
     step: "completed",
     message: "Repository validated successfully.",
     data: repoCheck.repoData,
   };
+};
+
+// ─── Clone Repository ─────────────────────────────────────
+export const cloneRepository = async (cloneUrl, repoName) => {
+  try {
+    const uniqueId = uuidv4().split("-")[0];
+    const folderName = `${repoName}-${uniqueId}`;
+    const clonePath = path.join(config.reposPath, folderName);
+
+    if (!fs.existsSync(config.reposPath)) {
+      fs.mkdirSync(config.reposPath, { recursive: true });
+    }
+
+    console.log(`📥 Cloning: ${cloneUrl}`);
+    const git = simpleGit();
+    await git.clone(cloneUrl, clonePath, ["--depth", "1"]);
+    console.log(`✅ Cloned: ${folderName}`);
+
+    return {
+      success: true,
+      clonePath,
+      folderName,
+      message: "Repository cloned successfully.",
+    };
+  } catch (error) {
+    console.error(`❌ Clone failed: ${error.message}`);
+    return {
+      success: false,
+      clonePath: null,
+      folderName: null,
+      message: `Clone failed: ${error.message}`,
+    };
+  }
+};
+
+// ─── Delete Cloned Repository ─────────────────────────────
+export const deleteClonedRepo = (clonePath) => {
+  try {
+    if (fs.existsSync(clonePath)) {
+      fs.rmSync(clonePath, { recursive: true, force: true });
+      return true;
+    }
+    return false;
+  } catch (error) {
+    console.error(`❌ Delete failed: ${error.message}`);
+    return false;
+  }
 };
