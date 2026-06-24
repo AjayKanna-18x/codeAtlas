@@ -30,5 +30,6 @@ function App() {
     </Router>
   );
 }
+// app.jsx is the main entry point of the React application. It sets up the routing for different pages using React Router. The Navbar and Sidebar components are rendered on every page, while the main content area changes based on the current route. The Toaster component is used for displaying notifications.
 
 export default App;
