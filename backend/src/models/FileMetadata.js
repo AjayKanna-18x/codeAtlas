@@ -32,18 +32,19 @@ const fileMetadataSchema = new mongoose.Schema(
       exportCount: { type: Number, default: 0 },
       fileSize: { type: Number, default: 0 },
     },
+
+    // ✅ Fixed — imports is array of objects
     imports: [
       {
-        source: String,
+        source: { type: String, default: "" },
         specifiers: { type: mongoose.Schema.Types.Mixed, default: [] },
-        type: String,
+        type: { type: String, default: "static" },
       },
     ],
-    exports: [
-      {
-        type: mongoose.Schema.Types.Mixed,
-      },
-    ],
+
+    // ✅ Fixed — exports is array of mixed
+    exports: [{ type: mongoose.Schema.Types.Mixed }],
+
     aiSummary: {
       type: String,
       default: null,
