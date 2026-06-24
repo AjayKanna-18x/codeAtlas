@@ -7,4 +7,14 @@ const API = axios.create({
   },
 });
 
+// ─── Repository APIs ──────────────────────────────────────
+export const validateRepository = (repoUrl) =>
+  API.post("/repositories/validate", { repoUrl });
+
+export const getAllRepositories = () =>
+  API.get("/repositories");
+
+export const importRepository = (repoUrl) =>
+  API.post("/repositories/import", { repoUrl });
+
 export default API;
