@@ -14,6 +14,9 @@ export const validateRepository = (repoUrl) =>
 export const getAllRepositories = () =>
   API.get("/repositories");
 
+export const getRepositoryById = (id) =>
+  API.get(`/repositories/${id}`);
+
 export const importRepository = (repoUrl) =>
   API.post("/repositories/import", { repoUrl });
 
