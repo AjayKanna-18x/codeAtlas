@@ -1,25 +1,36 @@
 import mongoose from "mongoose";
 
-// Node schema (represents a file in the graph)
 const nodeSchema = new mongoose.Schema({
   id: { type: String, required: true },
   label: { type: String, required: true },
-  filePath: { type: String },
+  filePath: { type: String, default: "" },
   fileSize: { type: Number, default: 0 },
   linesOfCode: { type: Number, default: 0 },
+  functionCount: { type: Number, default: 0 },
+  importCount: { type: Number, default: 0 },
+  exportCount: { type: Number, default: 0 },
   isDeadCode: { type: Boolean, default: false },
   type: {
     type: String,
-    enum: ["controller", "service", "model", "util", "config", "unknown"],
+    enum: [
+      "controller",
+      "service",
+      "model",
+      "route",
+      "middleware",
+      "util",
+      "config",
+      "test",
+      "unknown",
+    ],
     default: "unknown",
   },
 });
 
-// Edge schema (represents a dependency between files)
 const edgeSchema = new mongoose.Schema({
   id: { type: String, required: true },
-  source: { type: String, required: true }, // from file
-  target: { type: String, required: true }, // to file
+  source: { type: String, required: true },
+  target: { type: String, required: true },
   type: {
     type: String,
     enum: ["import", "export", "dynamic"],
@@ -27,7 +38,6 @@ const edgeSchema = new mongoose.Schema({
   },
 });
 
-// Main DependencyGraph schema
 const dependencyGraphSchema = new mongoose.Schema(
   {
     repositoryId: {
@@ -36,16 +46,16 @@ const dependencyGraphSchema = new mongoose.Schema(
       required: true,
       unique: true,
     },
-
     nodes: [nodeSchema],
     edges: [edgeSchema],
-
-    // Graph statistics
     stats: {
       totalNodes: { type: Number, default: 0 },
       totalEdges: { type: Number, default: 0 },
       isolatedNodes: { type: Number, default: 0 },
       mostConnectedFile: { type: String, default: null },
+      mostConnectedCount: { type: Number, default: 0 },
+      entryPoints: [String],
+      circularDependencies: { type: Number, default: 0 },
     },
   },
   {
@@ -53,6 +63,9 @@ const dependencyGraphSchema = new mongoose.Schema(
   }
 );
 
-const DependencyGraph = mongoose.model("DependencyGraph", dependencyGraphSchema);
+const DependencyGraph = mongoose.model(
+  "DependencyGraph",
+  dependencyGraphSchema
+);
 
 export default DependencyGraph;
