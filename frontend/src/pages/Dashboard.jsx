@@ -1,77 +1,108 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   FiGitBranch,
   FiFile,
-  FiCpu,
+  FiShare2,
   FiAlertTriangle,
   FiPlus,
-  FiUpload,
   FiClock,
   FiGrid,
   FiCode,
-  FiEye,
+  FiActivity,
+  FiCpu,
+  FiRefreshCw,
+  FiTrash2,
 } from "react-icons/fi";
+import toast from "react-hot-toast";
+import useRepository from "../hooks/useRepository";
+import StatCard from "../components/common/StatCard";
+import RepoCard from "../components/common/RepoCard";
+import { deleteRepository } from "../services/apiService";
 
-// ─── Mock Data (will be replaced with API data later) ─────
-const mockStats = [
-  {
-    label: "Repositories Analyzed",
-    value: 0,
-    icon: <FiGitBranch />,
-    footer: "No repositories yet",
-  },
-  {
-    label: "Files Discovered",
-    value: 0,
-    icon: <FiFile />,
-    footer: "Import a repo to start",
-  },
-  {
-    label: "Dependencies Mapped",
-    value: 0,
-    icon: <FiCpu />,
-    footer: "Graph data pending",
-  },
-  {
-    label: "Dead Code Detected",
-    value: 0,
-    icon: <FiAlertTriangle />,
-    footer: "Analysis pending",
-  },
-];
-
-const quickActions = [
-  {
-    icon: <FiPlus />,
-    title: "Import GitHub Repo",
-    desc: "Paste a GitHub URL to analyze",
-    path: "/import",
-  },
-  {
-    icon: <FiUpload />,
-    title: "Upload Local Project",
-    desc: "Analyze a local JS project",
-    path: "/import",
-  },
-  {
-    icon: <FiGitBranch />,
-    title: "View Dependency Graph",
-    desc: "Explore visual code map",
-    path: "/graph",
-  },
-  {
-    icon: <FiCpu />,
-    title: "AI Code Assistant",
-    desc: "Get AI-powered explanations",
-    path: "/ai",
-  },
-];
-
-// ─── Dashboard Component ──────────────────────────────────
 const Dashboard = () => {
   const navigate = useNavigate();
-  const [repositories] = useState([]); // Will connect to API later
+  const {
+    repositories,
+    loading,
+    analyzing,
+    fetchRepositories,
+    analyze,
+  } = useRepository();
+
+  const [deletingId, setDeletingId] = useState(null);
+
+  // ── Calculate platform stats ──
+  const platformStats = {
+    totalRepos: repositories.length,
+    totalFiles: repositories.reduce(
+      (sum, r) => sum + (r.stats?.jsFiles || 0), 0
+    ),
+    totalDeps: repositories.reduce(
+      (sum, r) => sum + (r.stats?.totalDependencies || 0), 0
+    ),
+    totalDeadCode: repositories.reduce(
+      (sum, r) => sum + (r.stats?.deadCodeFiles || 0), 0
+    ),
+  };
+
+  // ── Handle delete ──
+  const handleDelete = async (repoId) => {
+    if (!window.confirm("Delete this repository and all its data?")) return;
+
+    setDeletingId(repoId);
+    toast.loading("Deleting repository...", { id: "delete" });
+
+    try {
+      await deleteRepository(repoId);
+      toast.success("Repository deleted successfully.", { id: "delete" });
+      await fetchRepositories();
+    } catch (error) {
+      toast.error("Failed to delete repository.", { id: "delete" });
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
+  // ── Handle analyze ──
+  const handleAnalyze = async (repoId) => {
+    const result = await analyze(repoId);
+    if (result) {
+      await fetchRepositories();
+    }
+  };
+
+  // ── Quick actions ──
+  const quickActions = [
+    {
+      icon: <FiPlus />,
+      title: "Import GitHub Repo",
+      desc: "Paste a GitHub URL to analyze",
+      path: "/import",
+      color: "#6366f1",
+    },
+    {
+      icon: <FiGitBranch />,
+      title: "View Dependency Graph",
+      desc: "Explore visual code map",
+      path: "/graph",
+      color: "#22c55e",
+    },
+    {
+      icon: <FiAlertTriangle />,
+      title: "Dead Code Detection",
+      desc: "Find unused files",
+      path: "/deadcode",
+      color: "#ef4444",
+    },
+    {
+      icon: <FiCpu />,
+      title: "AI Code Assistant",
+      desc: "Get AI-powered explanations",
+      path: "/ai",
+      color: "#06b6d4",
+    },
+  ];
 
   return (
     <div className="dashboard-wrapper">
@@ -83,17 +114,23 @@ const Dashboard = () => {
             Welcome to <span>CodeAtlas</span>
           </h1>
           <p>
-            Intelligent Codebase Exploration and Architecture Analysis Platform.
+            Intelligent Codebase Exploration and Architecture
+            Analysis Platform.
             <br />
-            Import a JavaScript repository to get started.
+            {repositories.length === 0
+              ? "Import a JavaScript repository to get started."
+              : `You have ${repositories.length} repositor${
+                  repositories.length === 1 ? "y" : "ies"
+                } imported.`}
           </p>
         </div>
         <div className="welcome-banner-right">
           <button
             className="btn-secondary"
-            onClick={() => navigate("/history")}
+            onClick={fetchRepositories}
+            disabled={loading}
           >
-            <FiClock /> View History
+            <FiRefreshCw /> Refresh
           </button>
           <button
             className="btn-primary"
@@ -104,22 +141,63 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* ── Stats Grid ── */}
+      {/* ── Platform Stats ── */}
       <div>
         <div className="section-title">
           <FiGrid /> Platform <span>Statistics</span>
         </div>
         <div className="stats-grid">
-          {mockStats.map((stat, index) => (
-            <div className="stat-card" key={index}>
-              <div className="stat-card-top">
-                <span className="stat-card-label">{stat.label}</span>
-                <span className="stat-card-icon">{stat.icon}</span>
-              </div>
-              <div className="stat-card-value">{stat.value}</div>
-              <div className="stat-card-footer">{stat.footer}</div>
-            </div>
-          ))}
+          <StatCard
+            label="Repositories Analyzed"
+            value={platformStats.totalRepos}
+            icon={<FiGitBranch />}
+            footer={
+              platformStats.totalRepos === 0
+                ? "No repositories yet"
+                : `${
+                    repositories.filter((r) => r.status === "completed")
+                      .length
+                  } completed`
+            }
+            color="#6366f1"
+            onClick={() => navigate("/history")}
+          />
+          <StatCard
+            label="JS Files Discovered"
+            value={platformStats.totalFiles.toLocaleString()}
+            icon={<FiFile />}
+            footer={
+              platformStats.totalFiles === 0
+                ? "Import a repo to start"
+                : "Across all repositories"
+            }
+            color="#22c55e"
+            onClick={() => navigate("/files")}
+          />
+          <StatCard
+            label="Dependencies Mapped"
+            value={platformStats.totalDeps.toLocaleString()}
+            icon={<FiShare2 />}
+            footer={
+              platformStats.totalDeps === 0
+                ? "Graph data pending"
+                : "Total import relationships"
+            }
+            color="#06b6d4"
+            onClick={() => navigate("/graph")}
+          />
+          <StatCard
+            label="Dead Code Detected"
+            value={platformStats.totalDeadCode}
+            icon={<FiAlertTriangle />}
+            footer={
+              platformStats.totalDeadCode === 0
+                ? "No dead code found"
+                : "Unused files detected"
+            }
+            color="#ef4444"
+            onClick={() => navigate("/deadcode")}
+          />
         </div>
       </div>
 
@@ -135,7 +213,12 @@ const Dashboard = () => {
               key={index}
               onClick={() => navigate(action.path)}
             >
-              <div className="action-card-icon">{action.icon}</div>
+              <div
+                className="action-card-icon"
+                style={{ color: action.color }}
+              >
+                {action.icon}
+              </div>
               <div className="action-card-title">{action.title}</div>
               <div className="action-card-desc">{action.desc}</div>
             </div>
@@ -146,18 +229,31 @@ const Dashboard = () => {
       {/* ── Recent Repositories ── */}
       <div>
         <div className="section-title">
-          <FiEye /> Recent <span>Repositories</span>
+          <FiActivity /> Recent <span>Repositories</span>
+          {repositories.length > 0 && (
+            <button
+              className="btn-secondary"
+              style={{ marginLeft: "auto", fontSize: "0.8rem", padding: "0.4rem 0.75rem" }}
+              onClick={() => navigate("/history")}
+            >
+              View All
+            </button>
+          )}
         </div>
 
-        {repositories.length === 0 ? (
+        {loading ? (
+          <div className="loader" />
+        ) : repositories.length === 0 ? (
           <div className="empty-state">
             <div className="empty-state-icon">
               <FiGitBranch />
             </div>
-            <div className="empty-state-title">No Repositories Yet</div>
+            <div className="empty-state-title">
+              No Repositories Yet
+            </div>
             <div className="empty-state-subtitle">
-              Import a GitHub repository or upload a local project to start
-              exploring your codebase.
+              Import a GitHub repository or upload a local project
+              to start exploring your codebase.
             </div>
             <button
               className="btn-primary"
@@ -168,31 +264,14 @@ const Dashboard = () => {
           </div>
         ) : (
           <div className="recent-repos-grid">
-            {repositories.map((repo, index) => (
-              <div
-                className="repo-card"
-                key={index}
-                onClick={() => navigate(`/graph/${repo._id}`)}
-              >
-                <div className="repo-card-header">
-                  <span className="repo-card-name">{repo.name}</span>
-                  <span className={`repo-card-status status-${repo.status}`}>
-                    {repo.status}
-                  </span>
-                </div>
-                <div className="repo-card-meta">
-                  <span>👤 {repo.owner}</span>
-                  <span>📅 {new Date(repo.createdAt).toLocaleDateString()}</span>
-                </div>
-                <div className="repo-card-stats">
-                  <span className="repo-stat">
-                    <FiFile /> {repo.stats?.jsFiles || 0} files
-                  </span>
-                  <span className="repo-stat">
-                    <FiGitBranch /> {repo.stats?.totalDependencies || 0} deps
-                  </span>
-                </div>
-              </div>
+            {repositories.slice(0, 3).map((repo) => (
+              <RepoCard
+                key={repo._id}
+                repo={repo}
+                onAnalyze={handleAnalyze}
+                onDelete={handleDelete}
+                analyzing={analyzing}
+              />
             ))}
           </div>
         )}
