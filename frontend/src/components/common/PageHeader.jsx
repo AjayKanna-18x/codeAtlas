@@ -1,35 +1,22 @@
-const ProgressBar = ({
-  value = 0,
-  max = 100,
-  color = "#6366f1",
-  height = 6,
-  showLabel = false,
-  label = "",
-}) => {
-  const percentage = Math.min(100, Math.round((value / max) * 100));
-
+const PageHeader = ({ title, highlight, subtitle, actions }) => {
   return (
-    <div className="progress-wrapper">
-      {showLabel && (
-        <div className="progress-header">
-          <span className="progress-label">{label}</span>
-          <span className="progress-value">{percentage}%</span>
-        </div>
-      )}
-      <div
-        className="progress-track"
-        style={{ height: `${height}px` }}
-      >
-        <div
-          className="progress-fill"
-          style={{
-            width: `${percentage}%`,
-            background: color,
-          }}
-        />
+    <div className="page-header">
+      <div>
+        <h1 className="page-title">
+          {title}{" "}
+          {highlight && (
+            <span style={{ color: "#6366f1" }}>{highlight}</span>
+          )}
+        </h1>
+        {subtitle && (
+          <p className="page-subtitle">{subtitle}</p>
+        )}
       </div>
+      {actions && (
+        <div className="page-header-actions">{actions}</div>
+      )}
     </div>
   );
 };
 
-export default ProgressBar;
+export default PageHeader;
