@@ -6,6 +6,8 @@ import {
   FiCpu,
   FiClock,
   FiUpload,
+  FiAlertTriangle,
+  FiActivity,
 } from "react-icons/fi";
 
 const navItems = [
@@ -13,6 +15,8 @@ const navItems = [
   { path: "/import", icon: <FiUpload />, label: "Import Repo" },
   { path: "/graph", icon: <FiGitBranch />, label: "Graph Viewer" },
   { path: "/files", icon: <FiFile />, label: "File Inspector" },
+  { path: "/analysis", icon: <FiActivity />, label: "Analysis" },
+  { path: "/deadcode", icon: <FiAlertTriangle />, label: "Dead Code" },
   { path: "/ai", icon: <FiCpu />, label: "AI Assistant" },
   { path: "/history", icon: <FiClock />, label: "History" },
 ];
@@ -20,6 +24,7 @@ const navItems = [
 const Sidebar = () => {
   return (
     <aside className="sidebar">
+      <div className="sidebar-section-title">Navigation</div>
       <ul className="sidebar-list">
         {navItems.map((item) => (
           <li key={item.path}>
