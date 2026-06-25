@@ -12,6 +12,10 @@ export const config = {
   nodeEnv: process.env.NODE_ENV || "development",
   mongoUri: process.env.MONGO_URI,
   frontendUrl: process.env.FRONTEND_URL || "http://localhost:5173",
-  // Path where repos will be cloned
   reposPath: path.join(__dirname, "../../repos"),
+
+  // ── AI Config ──
+  aiProvider: process.env.AI_PROVIDER || "gemini",
+  geminiApiKey: process.env.GEMINI_API_KEY || "",
+  openaiApiKey: process.env.OPENAI_API_KEY || "",
 };
