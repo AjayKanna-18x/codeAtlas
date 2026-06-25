@@ -1,8 +1,18 @@
 import express from "express";
-import { getAIExplanation } from "../controllers/aiController.js";
+import {
+  getFileSummary,
+  getModuleExplanation,
+  getArchitectureExplanation,
+  askCodebaseQuestion,
+  getProjectSummary,
+} from "../controllers/aiController.js";
 
 const router = express.Router();
 
-router.post("/explain", getAIExplanation);
+router.post("/file-summary", getFileSummary);
+router.post("/module-explain", getModuleExplanation);
+router.post("/architecture", getArchitectureExplanation);
+router.post("/question", askCodebaseQuestion);
+router.post("/project-summary", getProjectSummary);
 
 export default router;
