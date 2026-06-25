@@ -59,4 +59,20 @@ export const getAnalysisSummary = (repoId) =>
 export const runDeadCodeDetection = (repoId) =>
   API.post(`/analysis/${repoId}/deadcode`);
 
+// ─── AI APIs ──────────────────────────────────────────────
+export const getAIFileSummary = (fileId) =>
+  API.post("/ai/file-summary", { fileId });
+
+export const getAIModuleExplanation = (fileId, repoId) =>
+  API.post("/ai/module-explain", { fileId, repoId });
+
+export const getAIArchitecture = (repoId) =>
+  API.post("/ai/architecture", { repoId });
+
+export const askAIQuestion = (question, repoId) =>
+  API.post("/ai/question", { question, repoId });
+
+export const getAIProjectSummary = (repoId) =>
+  API.post("/ai/project-summary", { repoId });
+
 export default API;
