@@ -1,4 +1,4 @@
-import { NavLink } from "react-router-dom";
+import { NavLink, useLocation } from "react-router-dom";
 import {
   FiHome,
   FiGitBranch,
@@ -8,38 +8,108 @@ import {
   FiUpload,
   FiAlertTriangle,
   FiActivity,
+  FiCode,
+  FiGithub,
 } from "react-icons/fi";
+import useStats from "../hooks/useStats";
 
-const navItems = [
-  { path: "/", icon: <FiHome />, label: "Dashboard" },
-  { path: "/import", icon: <FiUpload />, label: "Import Repo" },
-  { path: "/graph", icon: <FiGitBranch />, label: "Graph Viewer" },
-  { path: "/files", icon: <FiFile />, label: "File Inspector" },
-  { path: "/analysis", icon: <FiActivity />, label: "Analysis" },
-  { path: "/deadcode", icon: <FiAlertTriangle />, label: "Dead Code" },
-  { path: "/ai", icon: <FiCpu />, label: "AI Assistant" },
-  { path: "/history", icon: <FiClock />, label: "History" },
+const navSections = [
+  {
+    title: "Main",
+    items: [
+      { path: "/", icon: <FiHome />, label: "Dashboard" },
+      { path: "/import", icon: <FiUpload />, label: "Import Repo" },
+      { path: "/history", icon: <FiClock />, label: "History" },
+    ],
+  },
+  {
+    title: "Analysis",
+    items: [
+      { path: "/graph", icon: <FiGitBranch />, label: "Graph Viewer" },
+      { path: "/files", icon: <FiFile />, label: "File Inspector" },
+      { path: "/analysis", icon: <FiActivity />, label: "Analysis" },
+      {
+        path: "/deadcode",
+        icon: <FiAlertTriangle />,
+        label: "Dead Code",
+      },
+    ],
+  },
+  {
+    title: "Intelligence",
+    items: [
+      { path: "/ai", icon: <FiCpu />, label: "AI Assistant" },
+    ],
+  },
 ];
 
 const Sidebar = () => {
+  const { stats } = useStats();
+
   return (
     <aside className="sidebar">
-      <div className="sidebar-section-title">Navigation</div>
-      <ul className="sidebar-list">
-        {navItems.map((item) => (
-          <li key={item.path}>
-            <NavLink
-              to={item.path}
-              className={({ isActive }) =>
-                `sidebar-link ${isActive ? "active" : ""}`
-              }
-            >
-              <span className="sidebar-icon">{item.icon}</span>
-              {item.label}
-            </NavLink>
-          </li>
-        ))}
-      </ul>
+      {/* ── Nav Sections ── */}
+      {navSections.map((section) => (
+        <div key={section.title} className="sidebar-section">
+          <div className="sidebar-section-title">{section.title}</div>
+          <ul className="sidebar-list">
+            {section.items.map((item) => (
+              <li key={item.path}>
+                <NavLink
+                  to={item.path}
+                  end={item.path === "/"}
+                  className={({ isActive }) =>
+                    `sidebar-link ${isActive ? "active" : ""}`
+                  }
+                >
+                  <span className="sidebar-icon">{item.icon}</span>
+                  <span className="sidebar-label">{item.label}</span>
+                </NavLink>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ))}
+
+      {/* ── Bottom Stats ── */}
+      <div className="sidebar-stats">
+        <div className="sidebar-stats-title">Platform Stats</div>
+        <div className="sidebar-stat-row">
+          <span>Repositories</span>
+          <span className="sidebar-stat-value">
+            {stats.totalRepos}
+          </span>
+        </div>
+        <div className="sidebar-stat-row">
+          <span>Files Analyzed</span>
+          <span className="sidebar-stat-value">
+            {stats.totalFiles.toLocaleString()}
+          </span>
+        </div>
+        <div className="sidebar-stat-row">
+          <span>Dependencies</span>
+          <span className="sidebar-stat-value">
+            {stats.totalDependencies.toLocaleString()}
+          </span>
+        </div>
+        <div className="sidebar-stat-row">
+          <span>Dead Files</span>
+          <span
+            className="sidebar-stat-value"
+            style={{ color: "#ef4444" }}
+          >
+            {stats.totalDeadCode}
+          </span>
+        </div>
+      </div>
+
+      {/* ── Footer ── */}
+      <div className="sidebar-footer">
+        <div className="sidebar-footer-logo">
+          <FiCode />
+          <span>CodeAtlas v1.0.0</span>
+        </div>
+      </div>
     </aside>
   );
 };
