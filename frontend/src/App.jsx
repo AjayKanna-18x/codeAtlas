@@ -7,6 +7,8 @@ import FilePage from "./pages/FilePage";
 import AIPage from "./pages/AIPage";
 import HistoryPage from "./pages/HistoryPage";
 import ImportPage from "./pages/ImportPage";
+import DeadCodePage from "./pages/DeadCodePage";
+import AnalysisPage from "./pages/AnalysisPage";
 import { Toaster } from "react-hot-toast";
 
 function App() {
@@ -24,6 +26,8 @@ function App() {
               <Route path="/files" element={<FilePage />} />
               <Route path="/ai" element={<AIPage />} />
               <Route path="/history" element={<HistoryPage />} />
+              <Route path="/deadcode" element={<DeadCodePage />} />
+              <Route path="/analysis" element={<AnalysisPage />} />
             </Routes>
           </main>
         </div>
