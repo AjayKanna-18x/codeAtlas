@@ -79,9 +79,7 @@ const RepoCard = ({ repo, onAnalyze, onDelete, analyzing }) => {
       <div className="repo-card-actions">
         <button
           className="repo-action-btn primary"
-          onClick={() =>
-            navigate(`/graph?repoId=${repo._id}`)
-          }
+          onClick={() => navigate(`/graph?repoId=${repo._id}`)}
         >
           <FiEye /> View Graph
         </button>
