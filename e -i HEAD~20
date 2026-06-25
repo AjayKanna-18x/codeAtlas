@@ -1,0 +1,96 @@
+[33me9e96ca[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m)[m feat(ai): integrate Gemini AI for file summaries, module explanations, architecture detection, and interactive chat assistant
+[33m58f4bb7[m ini
+[33m372f8ca[m ini
+[33mdca8559[m ini
+[33m30bcd33[m ini
+[33m7643e4b[m ini
+[33mdf956b0[m ini
+[33m862a4f4[m ini
+[33me488adf[m ini
+[33m1b0f40d[m ini
+[33ma7d1197[m ini
+[33m150bd9e[m ini
+[33mc15c080[m ini
+[33mead23fa[m ini
+[33me3f5509[m ini
+[33m15cdc53[m ini
+[33m80f4256[m ini
+[33mfdfa6bf[m ini
+[33mc098c3d[m[33m ([m[1;31morigin/main[m[33m)[m ini
+[33mc0436e8[m ini
+[33mdaf725e[m ini
+[33mb5eb8a6[m ini
+[33m417c45b[m ini
+[33mc086033[m ini
+[33mb86a5b9[m ini
+[33m6099f2c[m ini
+[33m143fc90[m ini
+[33m8d1f02f[m ini
+[33m91b6b58[m ini
+[33m8c269b5[m ini
+[33m4e62cb0[m ini
+[33m15fbc24[m ini
+[33m6e94c35[m ini
+[33mc4f29e1[m ini
+[33m9ff4068[m exp
+[33m317aff5[m exp
+[33m8f2417b[m exp
+[33mec338cb[m exp
+[33mb297e40[m rep
+[33m384f891[m fip
+[33ma27f0a3[m node
+[33m2b392ca[m anz
+[33mc44ed1f[m dep
+[33m7335f37[m meta
+[33m887f53f[m repo
+[33m0cedaa8[m index.css
+[33m9036f4f[m pages fp
+[33m2d4289d[m pages file
+[33m22fbb00[m pages grp
+[33m3597171[m graph view
+[33m1c858d9[m graph node
+[33mb37ba49[m graph con
+[33mc6c8122[m graph cus
+[33m17ac7f8[m use graph
+[33mbb82fff[m use repo
+[33mf10ceaf[m apiser
+[33m1bd539a[m anzrouts
+[33mee13ad3[m graprouts
+[33mce9147a[m reprouts
+[33mdb9d702[m acfile
+[33m933166d[m gcfile
+[33m8de1d76[m fcfile
+[33m4fa18bf[m repofile
+[33mba25910[m grapfile
+[33mbfe0ca7[m depfile
+[33m2336fa5[m filefile
+[33m9de5442[m repfile
+[33m83a52a4[m gfile
+[33m72505dd[m ufile
+[33m92d6d4c[m file
+[33m8c0d4c6[m feat(backend): implement repository cloning pipeline with simple-git, duplicate detection, and MongoDB persistence
+[33m616f09b[m updated css
+[33m306e0bc[m updated import
+[33m7129cce[m updated api
+[33mbfa73e2[m updated repo in routes1
+[33mc939e00[m updated api rers
+[33mf7d2bfc[m updated repo in routes  backend
+[33m9097ba4[m updated repo in con  backend
+[33m74a2fab[m updated repo in backend
+[33mbbe1582[m updated pages
+[33ma27f09b[m updated index.css
+[33me6920e3[m updated sidebar.jsx
+[33m76f93b6[m updated app.jsx
+[33me3da894[m feat(frontend): build complete Dashboard UI with stats cards, quick actions, and repository listing
+[33m4eaed0d[m dash updated
+[33m7b573e7[m css updated
+[33m31ca93d[m mangoos upadated
+[33md635529[m feat(database): setup MongoDB connection and create Mongoose schemas for Repository, FileMetadata, DependencyGraph, and AnalysisResult
+[33m5ff300b[m feat(backend): add all service placeholder files with base structure and future implementation notes
+[33mfb9998e[m feat(backend): initialize Node.js Express server with MVC structure, middleware, and base API routes
+[33m6e854e7[m initial commit
+[33ma649885[m Save frontend changes: AppContext, main, AIPage, HistoryPage, apiService
+[33m36e2529[m Update frontend pages: FilePage, GraphPage
+[33m0dbbfbb[m Record frontend components/pages and ignore node_modules
+[33mc02c551[m Fix project structure
+[33m5ba21cc[m Initial commit

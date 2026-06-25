@@ -1,6 +1,30 @@
-# Ignore Node modules in backend and frontend
-backend/node_modules/
-frontend/node_modules/
+# Dependencies
+node_modules/
 
-# Ignore local env files
+# Environment files
 .env
+.env.local
+.env.production
+
+# Build outputs
+dist/
+build/
+
+# Cloned repositories (temp storage)
+repos/
+temp/
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Coverage
+coverage/
