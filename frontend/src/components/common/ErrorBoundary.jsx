@@ -22,7 +22,10 @@ class ErrorBoundary extends Component {
           <div className="error-boundary-content">
             <FiAlertTriangle className="error-boundary-icon" />
             <h2>Something went wrong</h2>
-            <p>{this.state.error?.message || "An unexpected error occurred."}</p>
+            <p>
+              {this.state.error?.message ||
+                "An unexpected error occurred."}
+            </p>
             <button
               className="btn-primary"
               onClick={() => {
