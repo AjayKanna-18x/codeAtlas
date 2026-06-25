@@ -1,85 +1,83 @@
 import { memo } from "react";
 import { Handle, Position } from "reactflow";
 
-// ─── Node type colors ─────────────────────────────────────
-const typeColors = {
-  controller: { bg: "#1e3a5f", border: "#3b82f6", badge: "#3b82f6" },
-  service: { bg: "#1a3a2a", border: "#22c55e", badge: "#22c55e" },
-  model: { bg: "#3a1a1a", border: "#ef4444", badge: "#ef4444" },
-  route: { bg: "#2a1a3a", border: "#a855f7", badge: "#a855f7" },
-  middleware: { bg: "#3a3a1a", border: "#eab308", badge: "#eab308" },
-  util: { bg: "#1a3a3a", border: "#06b6d4", badge: "#06b6d4" },
-  config: { bg: "#2a2a3a", border: "#6366f1", badge: "#6366f1" },
-  test: { bg: "#3a2a1a", border: "#f97316", badge: "#f97316" },
-  unknown: { bg: "#1e293b", border: "#334155", badge: "#475569" },
+const typeConfig = {
+  controller: { bg: "#eff6ff", border: "#2563eb", badge: "#2563eb", badgeBg: "#dbeafe" },
+  service: { bg: "#f0fdf4", border: "#16a34a", badge: "#16a34a", badgeBg: "#dcfce7" },
+  model: { bg: "#fef2f2", border: "#dc2626", badge: "#dc2626", badgeBg: "#fee2e2" },
+  route: { bg: "#f5f3ff", border: "#7c3aed", badge: "#7c3aed", badgeBg: "#ede9fe" },
+  middleware: { bg: "#fefce8", border: "#ca8a04", badge: "#ca8a04", badgeBg: "#fef9c3" },
+  util: { bg: "#ecfeff", border: "#0891b2", badge: "#0891b2", badgeBg: "#cffafe" },
+  config: { bg: "#fff7ed", border: "#e8590c", badge: "#e8590c", badgeBg: "#ffedd5" },
+  test: { bg: "#fff7ed", border: "#ea580c", badge: "#ea580c", badgeBg: "#ffedd5" },
+  unknown: { bg: "#f8fafc", border: "#94a3b8", badge: "#64748b", badgeBg: "#f1f5f9" },
 };
 
 const CustomNode = memo(({ data, selected }) => {
   const type = data.type || "unknown";
-  const colors = typeColors[type] || typeColors.unknown;
+  const colors = typeConfig[type] || typeConfig.unknown;
   const isDeadCode = data.isDeadCode || false;
-
-  const bgColor = isDeadCode ? "#3a0a0a" : colors.bg;
-  const borderColor = isDeadCode ? "#ef4444" : selected ? "#ffffff" : colors.border;
 
   return (
     <div
       style={{
-        background: bgColor,
-        border: `2px solid ${borderColor}`,
-        borderRadius: "10px",
-        padding: "10px 14px",
-        minWidth: "140px",
-        maxWidth: "200px",
-        cursor: "pointer",
+        background: isDeadCode ? "#fef2f2" : colors.bg,
+        border: `2px solid ${
+          isDeadCode ? "#dc2626" : selected ? colors.border : "#e2e8f0"
+        }`,
+        borderRadius: "12px",
+        padding: "12px 16px",
+        minWidth: "150px",
+        maxWidth: "220px",
+        cursor: "grab",
         boxShadow: selected
-          ? `0 0 0 2px ${borderColor}40`
-          : "0 2px 8px rgba(0,0,0,0.3)",
-        transition: "all 0.2s ease",
+          ? `0 0 0 3px ${colors.border}20, 0 4px 12px rgba(0,0,0,0.08)`
+          : "0 2px 8px rgba(0,0,0,0.04)",
+        transition: "all 0.25s cubic-bezier(0.4, 0, 0.2, 1)",
+        fontFamily: "'Inter', sans-serif",
       }}
     >
-      {/* ── Top handles ── */}
+      {/* Top Handle */}
       <Handle
         type="target"
         position={Position.Top}
         style={{
-          background: borderColor,
+          background: isDeadCode ? "#dc2626" : colors.border,
           width: 8,
           height: 8,
-          border: "none",
+          border: "2px solid #ffffff",
+          boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
         }}
       />
 
-      {/* ── Node Content ── */}
-      <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-
+      {/* Content */}
+      <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
         {/* File name */}
         <div
           style={{
-            fontSize: "11px",
+            fontSize: "12px",
             fontWeight: "700",
-            color: "#ffffff",
+            color: "#0f172a",
             wordBreak: "break-all",
-            lineHeight: "1.3",
-            fontFamily: "Fira Code, monospace",
+            lineHeight: "1.4",
+            letterSpacing: "-0.01em",
           }}
         >
           {data.label}
         </div>
 
-        {/* Type badge */}
+        {/* Badges */}
         <div style={{ display: "flex", gap: "4px", flexWrap: "wrap" }}>
           <span
             style={{
               fontSize: "9px",
-              fontWeight: "600",
-              padding: "2px 6px",
+              fontWeight: "700",
+              padding: "2px 8px",
               borderRadius: "999px",
-              background: `${colors.badge}25`,
+              background: colors.badgeBg,
               color: colors.badge,
-              border: `1px solid ${colors.badge}50`,
               textTransform: "uppercase",
-              letterSpacing: "0.05em",
+              letterSpacing: "0.06em",
             }}
           >
             {type}
@@ -88,44 +86,47 @@ const CustomNode = memo(({ data, selected }) => {
             <span
               style={{
                 fontSize: "9px",
-                fontWeight: "600",
-                padding: "2px 6px",
+                fontWeight: "700",
+                padding: "2px 8px",
                 borderRadius: "999px",
-                background: "#ef444425",
-                color: "#ef4444",
-                border: "1px solid #ef444450",
+                background: "#fee2e2",
+                color: "#dc2626",
                 textTransform: "uppercase",
+                letterSpacing: "0.06em",
               }}
             >
-              dead
+              unused
             </span>
           )}
         </div>
 
-        {/* Stats row */}
+        {/* Stats */}
         <div
           style={{
             display: "flex",
-            gap: "8px",
-            fontSize: "9px",
-            color: "#64748b",
+            gap: "10px",
+            fontSize: "10px",
+            color: "#94a3b8",
+            fontFamily: "'JetBrains Mono', monospace",
+            fontWeight: "500",
           }}
         >
-          <span>📄 {data.linesOfCode || 0}L</span>
-          <span>⚡ {data.functionCount || 0}F</span>
-          <span>🔗 {data.importCount || 0}I</span>
+          <span>{data.linesOfCode || 0} lines</span>
+          <span>{data.functionCount || 0} fn</span>
+          <span>{data.importCount || 0} imp</span>
         </div>
       </div>
 
-      {/* ── Bottom handle ── */}
+      {/* Bottom Handle */}
       <Handle
         type="source"
         position={Position.Bottom}
         style={{
-          background: borderColor,
+          background: isDeadCode ? "#dc2626" : colors.border,
           width: 8,
           height: 8,
-          border: "none",
+          border: "2px solid #ffffff",
+          boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
         }}
       />
     </div>
