@@ -7,7 +7,10 @@ const API = axios.create({
   },
 });
 
-// ─── Repository APIs ──────────────────────────────────────
+// ═══════════════════════════════════════════════════════════
+// REPOSITORY APIs
+// ═══════════════════════════════════════════════════════════
+
 export const validateRepository = (repoUrl) =>
   API.post("/repositories/validate", { repoUrl });
 
@@ -26,7 +29,10 @@ export const analyzeRepository = (id) =>
 export const deleteRepository = (id) =>
   API.delete(`/repositories/${id}`);
 
-// ─── Graph APIs ───────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════
+// GRAPH APIs
+// ═══════════════════════════════════════════════════════════
+
 export const getDependencyGraph = (repoId, format = "reactflow") =>
   API.get(`/graph/${repoId}?format=${format}`);
 
@@ -36,7 +42,10 @@ export const getGraphStats = (repoId) =>
 export const getNodeDetails = (repoId, nodeId) =>
   API.get(`/graph/${repoId}/node/${encodeURIComponent(nodeId)}`);
 
-// ─── File APIs ────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════
+// FILE APIs
+// ═══════════════════════════════════════════════════════════
+
 export const getFilesByRepo = (repoId, search = "") =>
   API.get(`/files/${repoId}${search ? `?search=${search}` : ""}`);
 
@@ -49,7 +58,10 @@ export const getFileStats = (repoId) =>
 export const getDeadCodeFiles = (repoId) =>
   API.get(`/files/${repoId}/deadcode`);
 
-// ─── Analysis APIs ────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════
+// ANALYSIS APIs
+// ═══════════════════════════════════════════════════════════
+
 export const getAnalysisResult = (repoId) =>
   API.get(`/analysis/${repoId}`);
 
@@ -59,7 +71,10 @@ export const getAnalysisSummary = (repoId) =>
 export const runDeadCodeDetection = (repoId) =>
   API.post(`/analysis/${repoId}/deadcode`);
 
-// ─── AI APIs ──────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════
+// AI APIs
+// ═══════════════════════════════════════════════════════════
+
 export const getAIFileSummary = (fileId) =>
   API.post("/ai/file-summary", { fileId });
 
