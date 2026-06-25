@@ -1,7 +1,6 @@
 import {
   FiX,
   FiFile,
-  FiCode,
   FiArrowRight,
   FiArrowLeft,
   FiAlertTriangle,
@@ -14,10 +13,10 @@ const NodeInfoPanel = ({ nodeDetails, onClose }) => {
 
   return (
     <div className="node-info-panel">
-      {/* ── Header ── */}
+      {/* Header */}
       <div className="node-info-header">
         <div className="node-info-title">
-          <FiFile />
+          <FiFile style={{ color: "var(--primary)" }} />
           <span>{node.label}</span>
         </div>
         <button className="node-info-close" onClick={onClose}>
@@ -25,7 +24,7 @@ const NodeInfoPanel = ({ nodeDetails, onClose }) => {
         </button>
       </div>
 
-      {/* ── Type Badge ── */}
+      {/* Type Badge */}
       <div className="node-info-badges">
         <span className={`node-type-badge type-${node.type}`}>
           {node.type}
@@ -37,16 +36,16 @@ const NodeInfoPanel = ({ nodeDetails, onClose }) => {
         )}
       </div>
 
-      {/* ── File Path ── */}
+      {/* File Path */}
       <div className="node-info-path">
         <span className="node-info-label">Path</span>
         <span className="node-info-value-code">{node.filePath}</span>
       </div>
 
-      {/* ── Stats Grid ── */}
+      {/* Stats Grid */}
       <div className="node-info-stats">
         <div className="node-stat-item">
-          <span className="node-stat-label">Lines of Code</span>
+          <span className="node-stat-label">Lines</span>
           <span className="node-stat-value">{node.linesOfCode || 0}</span>
         </div>
         <div className="node-stat-item">
@@ -62,7 +61,7 @@ const NodeInfoPanel = ({ nodeDetails, onClose }) => {
           <span className="node-stat-value">{node.exportCount || 0}</span>
         </div>
         <div className="node-stat-item">
-          <span className="node-stat-label">File Size</span>
+          <span className="node-stat-label">Size</span>
           <span className="node-stat-value">
             {node.fileSize
               ? `${(node.fileSize / 1024).toFixed(1)} KB`
@@ -70,22 +69,21 @@ const NodeInfoPanel = ({ nodeDetails, onClose }) => {
           </span>
         </div>
         <div className="node-stat-item">
-          <span className="node-stat-label">Connections</span>
+          <span className="node-stat-label">Links</span>
           <span className="node-stat-value">
             {connections?.totalConnections || 0}
           </span>
         </div>
       </div>
 
-      {/* ── Connections ── */}
+      {/* Connections */}
       {connections && (
         <div className="node-connections">
-
           {/* Outgoing */}
           {connections.outgoing?.length > 0 && (
             <div className="node-conn-section">
               <div className="node-conn-title">
-                <FiArrowRight style={{ color: "#22c55e" }} />
+                <FiArrowRight style={{ color: "var(--accent-green)" }} />
                 Depends On ({connections.outgoing.length})
               </div>
               <div className="node-conn-list">
@@ -107,7 +105,7 @@ const NodeInfoPanel = ({ nodeDetails, onClose }) => {
           {connections.incoming?.length > 0 && (
             <div className="node-conn-section">
               <div className="node-conn-title">
-                <FiArrowLeft style={{ color: "#6366f1" }} />
+                <FiArrowLeft style={{ color: "var(--primary)" }} />
                 Used By ({connections.incoming.length})
               </div>
               <div className="node-conn-list">
@@ -129,8 +127,8 @@ const NodeInfoPanel = ({ nodeDetails, onClose }) => {
           {connections.outgoing?.length === 0 &&
             connections.incoming?.length === 0 && (
               <div className="node-no-connections">
-                <FiAlertTriangle style={{ color: "#eab308" }} />
-                No connections found — possible dead code
+                <FiAlertTriangle style={{ color: "var(--accent-yellow)" }} />
+                No connections — possible dead code
               </div>
             )}
         </div>
