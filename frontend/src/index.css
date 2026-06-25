@@ -3465,3 +3465,363 @@ button {
     grid-template-columns: 1fr;
   }
 }
+/* ═══════════════════════════════════════════════════════════
+   GRAPH PAGE — Light Theme Premium
+   ═══════════════════════════════════════════════════════════ */
+.graph-page {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  height: 100%;
+}
+
+.graph-page-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.graph-page-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+/* ─── Graph Stats Bar ────────────────────────────────────── */
+.graph-stats-bar {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+  padding: 0.75rem 1.25rem;
+  flex-wrap: wrap;
+  box-shadow: var(--shadow-sm);
+}
+
+.graph-stat-item {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: var(--text-secondary);
+  font-size: 0.82rem;
+  font-weight: 500;
+}
+
+/* ─── Graph Legend ───────────────────────────────────────── */
+.graph-legend {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  flex-wrap: wrap;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  text-transform: capitalize;
+}
+
+.legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+/* ─── Graph Canvas ───────────────────────────────────────── */
+.graph-canvas-wrapper {
+  flex: 1;
+  min-height: 600px;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  border: 1px solid var(--border-light);
+  position: relative;
+  box-shadow: var(--shadow-md);
+}
+
+.graph-viewer-container {
+  width: 100%;
+  height: 100%;
+  min-height: 600px;
+  background-color: #fafbfc;
+  position: relative;
+}
+
+.graph-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 500px;
+  gap: 1rem;
+  color: var(--text-secondary);
+}
+
+.graph-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 500px;
+  gap: 0.85rem;
+}
+
+/* ─── Graph Node Count ───────────────────────────────────── */
+.graph-node-count {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-full);
+  padding: 0.35rem 0.85rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  box-shadow: var(--shadow-sm);
+}
+
+/* ─── Graph Controls ─────────────────────────────────────── */
+.graph-controls {
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  z-index: 10;
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+  padding: 4px;
+  box-shadow: var(--shadow-md);
+}
+
+.graph-control-btn {
+  width: 34px;
+  height: 34px;
+  background-color: transparent;
+  border: none;
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: all 0.15s ease;
+}
+
+.graph-control-btn:hover {
+  background-color: var(--bg-tertiary);
+  color: var(--primary);
+}
+
+.graph-control-divider {
+  height: 1px;
+  background-color: var(--border-light);
+  margin: 2px 4px;
+}
+
+/* ─── Node Info Panel ────────────────────────────────────── */
+.node-info-panel {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  width: 300px;
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-lg);
+  padding: 1.15rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  z-index: 10;
+  max-height: 90%;
+  overflow-y: auto;
+  box-shadow: var(--shadow-lg);
+}
+
+.node-info-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.node-info-title {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: var(--text-primary);
+  font-weight: 700;
+  font-size: 0.88rem;
+  word-break: break-all;
+}
+
+.node-info-close {
+  background: none;
+  border: none;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  font-size: 1rem;
+  padding: 0.25rem;
+  border-radius: var(--radius-sm);
+  flex-shrink: 0;
+  transition: all 0.15s ease;
+}
+
+.node-info-close:hover {
+  color: var(--text-primary);
+  background-color: var(--bg-tertiary);
+}
+
+.node-info-badges {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+
+.node-type-badge {
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 0.2rem 0.6rem;
+  border-radius: var(--radius-full);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.type-controller { background: #dbeafe; color: #2563eb; }
+.type-service { background: #dcfce7; color: #16a34a; }
+.type-model { background: #fee2e2; color: #dc2626; }
+.type-route { background: #ede9fe; color: #7c3aed; }
+.type-middleware { background: #fef9c3; color: #ca8a04; }
+.type-util { background: #cffafe; color: #0891b2; }
+.type-config { background: #ffedd5; color: #e8590c; }
+.type-dead { background: #fee2e2; color: #dc2626; }
+.type-unknown { background: #f1f5f9; color: #64748b; }
+.type-test { background: #ffedd5; color: #ea580c; }
+
+.node-info-path {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.node-info-label {
+  font-size: 0.72rem;
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 600;
+}
+
+.node-info-value-code {
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+  word-break: break-all;
+  background-color: var(--bg-tertiary);
+  padding: 0.35rem 0.55rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-light);
+}
+
+.node-info-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.4rem;
+}
+
+.node-stat-item {
+  background-color: var(--bg-tertiary);
+  border-radius: var(--radius-sm);
+  padding: 0.5rem 0.65rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.node-stat-label {
+  font-size: 0.68rem;
+  color: var(--text-tertiary);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.node-stat-value {
+  font-size: 1rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+}
+
+.node-connections {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.node-conn-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.node-conn-title {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+}
+
+.node-conn-list {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.node-conn-item {
+  font-size: 0.75rem;
+  padding: 0.25rem 0.55rem;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-mono);
+}
+
+.node-conn-item.outgoing {
+  background-color: var(--accent-green-bg);
+  color: var(--accent-green);
+  border: 1px solid rgba(22, 163, 74, 0.12);
+}
+
+.node-conn-item.incoming {
+  background-color: var(--primary-bg);
+  color: var(--primary);
+  border: 1px solid var(--primary-border);
+}
+
+.node-conn-more {
+  font-size: 0.72rem;
+  color: var(--text-tertiary);
+  padding: 0.15rem 0.55rem;
+}
+
+.node-no-connections {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  background-color: var(--accent-yellow-bg);
+  border: 1px solid rgba(202, 138, 4, 0.12);
+  border-radius: var(--radius-sm);
+  padding: 0.5rem 0.65rem;
+}
