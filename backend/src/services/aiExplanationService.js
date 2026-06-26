@@ -18,13 +18,16 @@ const getGeminiModel = () => {
 const callAI = async (prompt) => {
   try {
     if (config.aiProvider === "gemini") {
+      if (!config.geminiApiKey) {
+        return "AI service is not configured. Please add your GEMINI_API_KEY to .env file.";
+      }
+
       const model = getGeminiModel();
       const result = await model.generateContent(prompt);
       const response = await result.response;
       return response.text();
     }
 
-    // Fallback response if no API key
     return "AI service is not configured. Please add your API key to .env file.";
   } catch (error) {
     console.error(`❌ AI Error: ${error.message}`);
