@@ -8,14 +8,14 @@ const getGeminiModel = () => {
   if (!geminiModel) {
     const genAI = new GoogleGenerativeAI(config.geminiApiKey);
     geminiModel = genAI.getGenerativeModel({
-      model: "gemini-2.0-flash",
+      model: "gemini-1.5-flash", 
     });
   }
   return geminiModel;
 };
 
-// ─── Call AI API ──────────────────────────────────────────
-const callAI = async (prompt) => {
+// ─── Call AI with Retry Logic ─────────────────────────────
+const callAI = async (prompt, retries = 3) => {
   try {
     if (config.aiProvider === "gemini") {
       if (!config.geminiApiKey) {
@@ -28,8 +28,26 @@ const callAI = async (prompt) => {
       return response.text();
     }
 
-    return "AI service is not configured. Please add your API key to .env file.";
+    return "AI service not configured.";
+
   } catch (error) {
+    // ── Handle rate limit with retry ──
+    if (error.message.includes("429") && retries > 0) {
+      console.log(
+        `⏳ Rate limited — retrying in 2s... (${retries} retries left)`
+      );
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+      return callAI(prompt, retries - 1);
+    }
+
+    // ── Handle quota exceeded ──
+    if (
+      error.message.includes("quota") ||
+      error.message.includes("429")
+    ) {
+      return "⚠️ AI quota exceeded for today. Please try again tomorrow or create a new API key at https://aistudio.google.com/app/apikey";
+    }
+
     console.error(`❌ AI Error: ${error.message}`);
     throw new Error(`AI generation failed: ${error.message}`);
   }
@@ -120,13 +138,13 @@ export const generateArchitectureExplanation = async (graphData) => {
   const prompt = `
 You are a software architect analyzing a JavaScript project structure.
 
-Analyze this project's dependency graph and explain its architecture.
+Analyze this project dependency graph and explain its architecture.
 
 Project Statistics:
 - Total Files: ${graphData.totalNodes}
 - Total Dependencies: ${graphData.totalEdges}
-- Isolated Files (potential dead code): ${graphData.isolatedNodes}
-- Most Connected File (hub): ${graphData.mostConnectedFile || "unknown"}
+- Isolated Files: ${graphData.isolatedNodes}
+- Most Connected File: ${graphData.mostConnectedFile || "unknown"}
 
 File Types Found:
 ${
@@ -160,7 +178,8 @@ Keep it technical but clear. Under 250 words.
 // ─── Answer Custom Question ───────────────────────────────
 export const answerCodebaseQuestion = async (question, contextData) => {
   const prompt = `
-You are an expert software engineer helping a developer understand a JavaScript codebase.
+You are an expert software engineer helping a developer understand
+a JavaScript codebase.
 
 Codebase Context:
 - Total Files: ${contextData.totalFiles || 0}
@@ -173,16 +192,19 @@ ${
   contextData.files?.length > 0
     ? contextData.files
         .slice(0, 20)
-        .map((f) => `- ${f.relativePath} (${f.stats?.linesOfCode || 0} lines)`)
+        .map(
+          (f) =>
+            `- ${f.relativePath} (${f.stats?.linesOfCode || 0} lines)`
+        )
         .join("\n")
     : "File list not available"
 }
 
 Developer Question: ${question}
 
-Provide a helpful, accurate, and concise answer based on the codebase context.
-If you cannot determine the answer from the context, say so clearly.
-Under 200 words.
+Provide a helpful, accurate, and concise answer based on the
+codebase context. If you cannot determine the answer from the
+context, say so clearly. Under 200 words.
 `;
 
   const response = await callAI(prompt);
