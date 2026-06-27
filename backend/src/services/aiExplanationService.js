@@ -8,7 +8,7 @@ const getGeminiModel = () => {
   if (!geminiModel) {
     const genAI = new GoogleGenerativeAI(config.geminiApiKey);
     geminiModel = genAI.getGenerativeModel({
-      model: "gemini-1.5-flash",
+      model: "gemini-2.0-flash",
     });
   }
   return geminiModel;
