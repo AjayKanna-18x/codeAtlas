@@ -15,7 +15,7 @@ export const config = {
   reposPath: path.join(__dirname, "../../repos"),
 
   // ── AI Config ──
-  aiProvider: process.env.AI_PROVIDER || "gemini",
+  aiProvider: process.env.AI_PROVIDER || "cohere",
+  cohereApiKey: process.env.COHERE_API_KEY || "",
   geminiApiKey: process.env.GEMINI_API_KEY || "",
-  openaiApiKey: process.env.OPENAI_API_KEY || "",
 };
