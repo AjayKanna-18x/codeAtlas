@@ -1,4 +1,4 @@
-import { NavLink, useLocation } from "react-router-dom";
+import { NavLink } from "react-router-dom";
 import {
   FiHome,
   FiGitBranch,
@@ -9,7 +9,8 @@ import {
   FiAlertTriangle,
   FiActivity,
   FiCode,
-  FiGithub,
+  FiShield,
+  FiGitCommit,
 } from "react-icons/fi";
 import useStats from "../hooks/useStats";
 
@@ -28,17 +29,15 @@ const navSections = [
       { path: "/graph", icon: <FiGitBranch />, label: "Graph Viewer" },
       { path: "/files", icon: <FiFile />, label: "File Inspector" },
       { path: "/analysis", icon: <FiActivity />, label: "Analysis" },
-      {
-        path: "/deadcode",
-        icon: <FiAlertTriangle />,
-        label: "Dead Code",
-      },
+      { path: "/deadcode", icon: <FiAlertTriangle />, label: "Dead Code" },
     ],
   },
   {
     title: "Intelligence",
     items: [
       { path: "/ai", icon: <FiCpu />, label: "AI Assistant" },
+      { path: "/review", icon: <FiShield />, label: "Code Review" },
+      { path: "/evolution", icon: <FiGitCommit />, label: "Evolution" },
     ],
   },
 ];
@@ -96,7 +95,7 @@ const Sidebar = () => {
           <span>Dead Files</span>
           <span
             className="sidebar-stat-value"
-            style={{ color: "#ef4444" }}
+            style={{ color: "var(--accent-red)" }}
           >
             {stats.totalDeadCode}
           </span>
