@@ -89,5 +89,30 @@ export const askAIQuestion = (question, repoId) =>
 
 export const getAIProjectSummary = (repoId) =>
   API.post("/ai/project-summary", { repoId });
+// ═══════════════════════════════════════════════════════════
+// EVOLUTION APIs
+// ═══════════════════════════════════════════════════════════
+
+export const getEvolutionTimeline = (repoId, limit = 30) =>
+  API.get(`/evolution/${repoId}/timeline?limit=${limit}`);
+
+export const getEvolutionStats = (repoId) =>
+  API.get(`/evolution/${repoId}/stats`);
+
+export const getFileHistory = (repoId, filePath) =>
+  API.post(`/evolution/${repoId}/file-history`, { filePath });
+
+// ═══════════════════════════════════════════════════════════
+// CODE REVIEW APIs
+// ═══════════════════════════════════════════════════════════
+
+export const reviewSingleFile = (fileId) =>
+  API.post("/review/file", { fileId });
+
+export const reviewFullProject = (repoId) =>
+  API.post("/review/project", { repoId });
+
+export const reviewBatchFiles = (repoId, limit = 5) =>
+  API.post("/review/batch", { repoId, limit });
 
 export default API;
