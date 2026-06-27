@@ -1,38 +1,50 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { CohereClient } from "cohere-ai";
 import { config } from "../config/env.js";
 
-// ─── Initialize Gemini ────────────────────────────────────
-let geminiModel = null;
+// ─── Initialize Cohere ────────────────────────────────────
+let cohereClient = null;
 
-const getGeminiModel = () => {
-  if (!geminiModel) {
-    const genAI = new GoogleGenerativeAI(config.geminiApiKey);
-    geminiModel = genAI.getGenerativeModel({
-      model: "gemini-1.5-flash", 
+const getCohereClient = () => {
+  if (!cohereClient) {
+    cohereClient = new CohereClient({
+      token: config.cohereApiKey,
     });
   }
-  return geminiModel;
+  return cohereClient;
 };
 
-// ─── Call AI with Retry Logic ─────────────────────────────
+// ─── Call AI API ──────────────────────────────────────────
 const callAI = async (prompt, retries = 3) => {
   try {
-    if (config.aiProvider === "gemini") {
-      if (!config.geminiApiKey) {
-        return "AI service is not configured. Please add your GEMINI_API_KEY to .env file.";
+    if (config.aiProvider === "cohere") {
+      if (!config.cohereApiKey) {
+        return "AI service is not configured. Please add your COHERE_API_KEY to .env file.";
       }
 
-      const model = getGeminiModel();
-      const result = await model.generateContent(prompt);
-      const response = await result.response;
-      return response.text();
+      const client = getCohereClient();
+
+      const response = await client.generate({
+        model: "command-r-plus-08-2024",
+        prompt: prompt,
+        maxTokens: 500,
+        temperature: 0.7,
+        k: 0,
+        stopSequences: [],
+        returnLikelihoods: "NONE",
+      });
+
+      return response.generations[0].text.trim();
     }
 
     return "AI service not configured.";
 
   } catch (error) {
     // ── Handle rate limit with retry ──
-    if (error.message.includes("429") && retries > 0) {
+    if (
+      (error.message.includes("429") ||
+        error.message.includes("rate")) &&
+      retries > 0
+    ) {
       console.log(
         `⏳ Rate limited — retrying in 2s... (${retries} retries left)`
       );
@@ -43,9 +55,9 @@ const callAI = async (prompt, retries = 3) => {
     // ── Handle quota exceeded ──
     if (
       error.message.includes("quota") ||
-      error.message.includes("429")
+      error.message.includes("exceeded")
     ) {
-      return "⚠️ AI quota exceeded for today. Please try again tomorrow or create a new API key at https://aistudio.google.com/app/apikey";
+      return "⚠️ AI quota exceeded. Please try again later.";
     }
 
     console.error(`❌ AI Error: ${error.message}`);
@@ -55,8 +67,7 @@ const callAI = async (prompt, retries = 3) => {
 
 // ─── Generate File Summary ────────────────────────────────
 export const generateFileSummary = async (fileData) => {
-  const prompt = `
-You are a senior software engineer analyzing JavaScript code.
+  const prompt = `You are a senior software engineer analyzing JavaScript code.
 
 Analyze this file and provide a concise technical summary.
 
@@ -87,9 +98,7 @@ Please provide:
 3. Key responsibilities
 4. Dependencies it relies on
 
-Keep the response concise, technical, and under 150 words.
-Format with clear sections.
-`;
+Keep the response concise, technical, and under 150 words.`;
 
   const response = await callAI(prompt);
   return response;
@@ -97,8 +106,7 @@ Format with clear sections.
 
 // ─── Generate Module Explanation ─────────────────────────
 export const generateModuleExplanation = async (moduleData) => {
-  const prompt = `
-You are a senior software engineer explaining code architecture.
+  const prompt = `You are a senior software engineer explaining code architecture.
 
 Explain this module/file to a developer who is new to the codebase.
 
@@ -126,8 +134,7 @@ Provide:
 3. How it connects to other modules
 4. What would break if this file was removed
 
-Use simple language. Under 200 words.
-`;
+Use simple language. Under 200 words.`;
 
   const response = await callAI(prompt);
   return response;
@@ -135,8 +142,7 @@ Use simple language. Under 200 words.
 
 // ─── Generate Architecture Explanation ───────────────────
 export const generateArchitectureExplanation = async (graphData) => {
-  const prompt = `
-You are a software architect analyzing a JavaScript project structure.
+  const prompt = `You are a software architect analyzing a JavaScript project structure.
 
 Analyze this project dependency graph and explain its architecture.
 
@@ -168,8 +174,7 @@ Please provide:
 3. Key architectural observations
 4. Potential improvements
 
-Keep it technical but clear. Under 250 words.
-`;
+Keep it technical but clear. Under 250 words.`;
 
   const response = await callAI(prompt);
   return response;
@@ -177,9 +182,8 @@ Keep it technical but clear. Under 250 words.
 
 // ─── Answer Custom Question ───────────────────────────────
 export const answerCodebaseQuestion = async (question, contextData) => {
-  const prompt = `
-You are an expert software engineer helping a developer understand
-a JavaScript codebase.
+  const prompt = `You are an expert software engineer helping a developer
+understand a JavaScript codebase.
 
 Codebase Context:
 - Total Files: ${contextData.totalFiles || 0}
@@ -204,8 +208,7 @@ Developer Question: ${question}
 
 Provide a helpful, accurate, and concise answer based on the
 codebase context. If you cannot determine the answer from the
-context, say so clearly. Under 200 words.
-`;
+context, say so clearly. Under 200 words.`;
 
   const response = await callAI(prompt);
   return response;
@@ -213,8 +216,7 @@ context, say so clearly. Under 200 words.
 
 // ─── Generate Project Summary ─────────────────────────────
 export const generateProjectSummary = async (projectData) => {
-  const prompt = `
-You are a technical writer creating project documentation.
+  const prompt = `You are a technical writer creating project documentation.
 
 Create a comprehensive project summary for this JavaScript codebase.
 
@@ -233,8 +235,7 @@ Please write:
 4. Architecture summary
 5. Notable observations
 
-Professional tone. Under 300 words.
-`;
+Professional tone. Under 300 words.`;
 
   const response = await callAI(prompt);
   return response;
