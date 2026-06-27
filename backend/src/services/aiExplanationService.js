@@ -13,7 +13,6 @@ const getCohereClient = () => {
   return cohereClient;
 };
 
-// ─── Call AI API ──────────────────────────────────────────
 const callAI = async (prompt, retries = 3) => {
   try {
     if (config.aiProvider === "cohere") {
@@ -23,17 +22,15 @@ const callAI = async (prompt, retries = 3) => {
 
       const client = getCohereClient();
 
-      const response = await client.generate({
-        model: "command-r-plus-08-2024",
-        prompt: prompt,
-        maxTokens: 500,
-        temperature: 0.7,
-        k: 0,
-        stopSequences: [],
-        returnLikelihoods: "NONE",
-      });
+      // ✅ Using Chat API (generate API removed Sep 2025)
+     const response = await client.chat({
+  model: "command-a-03-2025",
+  message: prompt,
+  temperature: 0.7,
+  maxTokens: 500,
+});
 
-      return response.generations[0].text.trim();
+      return response.text.trim();
     }
 
     return "AI service not configured.";
@@ -41,8 +38,8 @@ const callAI = async (prompt, retries = 3) => {
   } catch (error) {
     // ── Handle rate limit with retry ──
     if (
-      (error.message.includes("429") ||
-        error.message.includes("rate")) &&
+      (error.message?.includes("429") ||
+        error.message?.includes("rate")) &&
       retries > 0
     ) {
       console.log(
@@ -54,8 +51,8 @@ const callAI = async (prompt, retries = 3) => {
 
     // ── Handle quota exceeded ──
     if (
-      error.message.includes("quota") ||
-      error.message.includes("exceeded")
+      error.message?.includes("quota") ||
+      error.message?.includes("exceeded")
     ) {
       return "⚠️ AI quota exceeded. Please try again later.";
     }
@@ -64,7 +61,6 @@ const callAI = async (prompt, retries = 3) => {
     throw new Error(`AI generation failed: ${error.message}`);
   }
 };
-
 // ─── Generate File Summary ────────────────────────────────
 export const generateFileSummary = async (fileData) => {
   const prompt = `You are a senior software engineer analyzing JavaScript code.

@@ -18,14 +18,16 @@ import aiRoutes from "./routes/aiRoutes.js";
 const app = express();
 
 // ─── Security Middleware ──────────────────────────────────
-app.use(helmet({
-  crossOriginEmbedderPolicy: false,
-  contentSecurityPolicy: false,
-}));
+app.use(
+  helmet({
+    crossOriginEmbedderPolicy: false,
+    contentSecurityPolicy: false,
+  })
+);
 
 // ─── Rate Limiting ────────────────────────────────────────
 const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
+  windowMs: 15 * 60 * 1000,
   max: 100,
   message: {
     success: false,
@@ -34,7 +36,7 @@ const limiter = rateLimit({
 });
 
 const aiLimiter = rateLimit({
-  windowMs: 60 * 1000, // 1 minute
+  windowMs: 60 * 1000,
   max: 10,
   message: {
     success: false,
@@ -47,16 +49,18 @@ app.use("/api/ai/", aiLimiter);
 
 // ─── General Middleware ───────────────────────────────────
 app.use(compression());
-app.use(cors({
-  origin: [
-    config.frontendUrl,
-    "http://localhost:5173",
-    "http://localhost:3000",
-  ],
-  credentials: true,
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization"],
-}));
+app.use(
+  cors({
+    origin: [
+      config.frontendUrl,
+      "http://localhost:5173",
+      "http://localhost:3000",
+    ],
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  })
+);
 app.use(morgan(config.nodeEnv === "production" ? "combined" : "dev"));
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
@@ -79,8 +83,12 @@ app.get("/api/health", (req, res) => {
     environment: config.nodeEnv,
     uptime: Math.round(process.uptime()),
     memory: {
-      used: Math.round(process.memoryUsage().heapUsed / 1024 / 1024),
-      total: Math.round(process.memoryUsage().heapTotal / 1024 / 1024),
+      used: Math.round(
+        process.memoryUsage().heapUsed / 1024 / 1024
+      ),
+      total: Math.round(
+        process.memoryUsage().heapTotal / 1024 / 1024
+      ),
     },
   });
 });
@@ -123,14 +131,19 @@ process.on("unhandledRejection", (reason) => {
 const startServer = async () => {
   try {
     await connectDB();
+
     app.listen(config.port, () => {
       console.log("═══════════════════════════════════════");
       console.log(`🚀  CodeAtlas Server Started`);
       console.log(`📡  Port      : ${config.port}`);
       console.log(`🌍  Mode      : ${config.nodeEnv}`);
       console.log(`🔗  URL       : http://localhost:${config.port}`);
-      console.log(`❤️   Health   : http://localhost:${config.port}/api/health`);
-      console.log(`🤖  AI        : ${config.aiProvider.toUpperCase()}`);
+      console.log(
+        `❤️   Health   : http://localhost:${config.port}/api/health`
+      );
+      console.log(
+        `🤖  AI        : ${config.aiProvider.toUpperCase()}`
+      );
       console.log("═══════════════════════════════════════");
     });
   } catch (error) {
