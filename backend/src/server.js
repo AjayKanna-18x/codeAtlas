@@ -14,6 +14,8 @@ import fileRoutes from "./routes/fileRoutes.js";
 import graphRoutes from "./routes/graphRoutes.js";
 import analysisRoutes from "./routes/analysisRoutes.js";
 import aiRoutes from "./routes/aiRoutes.js";
+import evolutionRoutes from "./routes/evolutionRoutes.js";
+import codeReviewRoutes from "./routes/codeReviewRoutes.js";
 
 const app = express();
 
@@ -46,6 +48,7 @@ const aiLimiter = rateLimit({
 
 app.use("/api/", limiter);
 app.use("/api/ai/", aiLimiter);
+app.use("/api/review/", aiLimiter);
 
 // ─── General Middleware ───────────────────────────────────
 app.use(compression());
@@ -99,6 +102,8 @@ app.use("/api/files", fileRoutes);
 app.use("/api/graph", graphRoutes);
 app.use("/api/analysis", analysisRoutes);
 app.use("/api/ai", aiRoutes);
+app.use("/api/evolution", evolutionRoutes);
+app.use("/api/review", codeReviewRoutes);
 
 // ─── 404 Handler ─────────────────────────────────────────
 app.use((req, res) => {
