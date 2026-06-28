@@ -221,6 +221,7 @@ export const generateFullArchitectureSummary = async (
     suggestions,
     fileTypes,
     aiDescription,
-    counts: patternResult.counts,,
+    counts: patternResult.counts,
   };
 };
+//dsa
