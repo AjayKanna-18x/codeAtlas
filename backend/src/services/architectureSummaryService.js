@@ -224,4 +224,4 @@ export const generateFullArchitectureSummary = async (
     counts: patternResult.counts,
   };
 };
-//yy
+//
